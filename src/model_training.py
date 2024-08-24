@@ -1,7 +1,8 @@
 from data_prep import load_processed_data
 import os
-from keras.src.layers import Dense, LSTM
+from keras.src.layers import Dense, LSTM, Dropout
 from keras.src.models.sequential import Sequential
+from keras.src.optimizers import Adam
 # from keras.src.models import load_model
 # from tensorflow.python.keras.models import load_model
 from keras._tf_keras.keras.models import load_model
@@ -24,12 +25,13 @@ def split_data(data, train_size=0.8):
 # Build and compile the LSTM model
 def create_lstm_model(input_shape):
     model = Sequential()
-    model.add(LSTM(50, return_sequences=True, input_shape=input_shape))
+    model.add(LSTM(100, return_sequences=True, input_shape=input_shape))
     model.add(LSTM(50, return_sequences=False))
     model.add(Dense(25))
     model.add(Dense(1))
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
+    model.add(Dropout(0.2))
+    optimizer = Adam(learning_rate=0.001)
+    model.compile(optimizer=optimizer, loss='mean_squared_error')
     return model
 
 
@@ -56,7 +58,7 @@ def prepare_data_for_lstm(data, window_size):
     return X, Y
 
 
-def train_model(data, window_size=30, epochs=20, batch_size=32):
+def train_model(data, window_size=60, epochs=100, batch_size=32):
     X, Y = prepare_data_for_lstm(data, window_size)
     model = create_lstm_model((X.shape[1], 1))
     model.fit(X, Y, epochs=epochs, batch_size=batch_size)
@@ -92,6 +94,6 @@ if __name__ == "__main__":
     #  split data
     train_data, test_data = split_data(data)
 
-    window_size = 30
+    window_size = 60
     model = train_model(data=train_data, window_size=window_size)
     save_model(model)

@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 import os
 from data_ingestion import load_raw_data
 
@@ -9,7 +10,6 @@ def preprocess_data(data: pd.DataFrame):
 
     # Scale data if necessary (Min-Max scaling)
     scaled_data = (data - data.min()) / (data.max() - data.min())
-
     return scaled_data
 
 

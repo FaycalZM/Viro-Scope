@@ -34,13 +34,12 @@ def plot_predictions(dates, actual, predicted):
 
 if __name__ == "__main__":
     data = load_processed_data()
-    window_size = 30
+    window_size = 60
 
     last_n_weeks = 18
     # Take the last 'window_size' values before the last time step as the test data
     # This is done so that the model can be evaluated on unseen data
-    # test_data = data[-window_size-last_n_weeks:-last_n_weeks]
-    test_data = data[3:window_size+3]
+    test_data = data[:window_size]
     model = load_lstm_model(model_name='lstm_model.keras')
 
     predictions = make_predictions(model, test_data, window_size=window_size)
