@@ -1,5 +1,7 @@
 from pytrends.request import TrendReq
 import pandas as pd
+from dateutil import parser
+import datetime
 import os
 
 
@@ -13,7 +15,9 @@ def fetch_google_trends_data(keywords, timeframe='today 5-y', geo='', category=0
     if 'isPartial' in data.columns:
         data = data.drop(columns=['isPartial'])
 
-    return data
+    daily_data = data.resample('D').interpolate(method='linear')
+
+    return daily_data
 
 
 def save_raw_data(data: pd.DataFrame, file_name='google_trends_data.csv'):
@@ -30,6 +34,6 @@ def load_raw_data(file_name='google_trends_data.csv'):
 
 
 if __name__ == "__main__":
-    keywords = ["flu", "fever", "cough"]
+    keywords = ["flu"]
     data = fetch_google_trends_data(keywords)
     save_raw_data(data)
