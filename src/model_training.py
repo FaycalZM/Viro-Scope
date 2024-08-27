@@ -40,7 +40,7 @@ def prepare_data_for_lstm(data, window_size):
     data = data.values if hasattr(data, 'values') else np.array(data)
     X, Y = [], []
     # enough data points to form a single input sequence for the model to predict the next time step
-    if len(data) == window_size:
+    if len(data) <= window_size:
         X.append(data)
         # no next step => no Y values
     # multiple input sequences
@@ -58,7 +58,7 @@ def prepare_data_for_lstm(data, window_size):
     return X, Y
 
 
-def train_model(data, window_size=60, epochs=100, batch_size=32):
+def train_model(data, window_size=60, epochs=60, batch_size=32):
     X, Y = prepare_data_for_lstm(data, window_size)
     model = create_lstm_model((X.shape[1], 1))
     model.fit(X, Y, epochs=epochs, batch_size=batch_size)
