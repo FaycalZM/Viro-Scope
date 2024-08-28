@@ -13,12 +13,12 @@ def evaluate_model_performance(model, test_data, window_size):
 
     Parameters:
     - model: Trained LSTM model.
-    - data: The full dataset (both training and test data).
+    - test_data: Test data for evaluation.
     - window_size: The number of previous time steps used as input for prediction.
 
     Returns:
     - predictions: Predicted values for the test set.
-    - actual: Actual values for the test set.
+    - Y_test: Actual values for the test set.
     - mse: Mean Squared Error of the predictions.
     - mae: Mean Absolute Error of the predictions.
     """
@@ -44,25 +44,23 @@ def evaluate_model_performance(model, test_data, window_size):
     return predictions, Y_test, mse, mae
 
 
-# def plot_predictions(dates, actual, predicted):
+def plot_predictions(dates, predictions, actual):
+    """
+    Plot the model's predictions against the actual values.
 
-    dates = np.array(dates)
-
+    Parameters:
+    - dates: The corresponding dates for the test set.
+    - predictions: Predicted values for the test set.
+    - actual: Actual values for the test set.
+    """
+    # Adjust the predictions and actual data to align with the original dataset
     plt.figure(figsize=(14, 7))
 
-    # Plot the actual values
-    plt.plot(actual,
-             label='Actual Values', color='blue')
+    plt.plot(dates, actual, label='Actual Data', color='blue')
+    plt.plot(dates, predictions, label='Predictions',
+             color='red', linestyle='dashed')
 
-    # Plot the predicted values
-    plt.plot(predicted,
-             label='Predicted Values', color='red', linestyle='dashed')
-
-    # # Mark the training-test split
-    # plt.axvline(x=dates, color='green',
-    #             linestyle='--', label='Train-Test Split')
-
-    plt.title('Actual vs Predicted Search Volumes on Test Data')
+    plt.title('Actual vs Predicted Search Volume')
     plt.xlabel('Date')
     plt.ylabel('Search Volume')
     plt.legend()
@@ -70,57 +68,14 @@ def evaluate_model_performance(model, test_data, window_size):
     plt.show()
 
 
-def plot_predictions(predictions, actual, train_data, test_data, window_size):
-    """
-    Plot the model's predictions against the actual values.
-
-    Parameters:
-    - predictions: Predicted values for the test set.
-    - actual: Actual values for the test set.
-    - train_data: The training data.
-    - test_data: The test data.
-    - window_size: The number of previous time steps used as input for prediction.
-    """
-    # Adjust the predictions and actual data to align with the original dataset
-    prediction_plot = np.empty_like(test_data)
-    prediction_plot[:, :] = np.nan
-    prediction_plot[window_size:len(
-        predictions) + window_size, :] = predictions
-
-    # Plotting the results
-    plt.figure(figsize=(15, 8))
-    plt.plot(range(len(train_data)), train_data, label='Training Data')
-    plt.plot(range(len(train_data), len(train_data) + len(test_data)),
-             test_data, label='Actual Data', color='blue')
-    plt.plot(range(len(train_data), len(train_data) + len(test_data)),
-             prediction_plot, label='Predictions', color='red')
-    plt.title('Model Predictions vs Actual Data')
-    plt.xlabel('Time')
-    plt.ylabel('Search Volume')
-    plt.legend()
-    plt.show()
-
-# Example usage:
-# plot_predictions(predictions, actual, train_data, test_data, window_size)
-
-
 if __name__ == "__main__":
     data = load_processed_data()
     train_data, test_data = split_data(data)
     window_size = 60
+    dates = test_data.index[window_size:]
 
-    # # Take the last 'window_size' values before the last time step as the test data
-    # # This is done so that the model can be evaluated on unseen data
-    # test_data = data[:window_size]
     model = load_lstm_model(model_name='lstm_model.keras')
     predictions, actual, mse, mae = evaluate_model_performance(
         model, test_data, window_size)
 
-    plot_predictions(predictions, actual, train_data, test_data, window_size)
-    # # Generate a date range for the last 5 years with weekly intervals
-    # dates = pd.date_range(end=pd.to_datetime('today').strftime('%Y-%m-%d'),
-    #                       periods=len(test_data), freq='W')
-
-    # # Assuming predictions have been generated for the test data
-    # plot_predictions(dates, test_data, predictions)
-    # print(test_data)
+    plot_predictions(dates, predictions, actual)
