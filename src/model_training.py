@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 matplotlib.use('Qt5Agg')
 
 
+WINDOW_SIZE = 60
+
+
 # Split the dataset into training and testing sets
 def split_data(data, train_size=0.8):
     train_len = int(len(data) * train_size)
@@ -58,7 +61,7 @@ def prepare_data_for_lstm(data, window_size):
     return X, Y
 
 
-def train_model(data, window_size=60, epochs=60, batch_size=32):
+def train_model(data, window_size=WINDOW_SIZE, epochs=60, batch_size=32):
     X, Y = prepare_data_for_lstm(data, window_size)
     model = create_lstm_model((X.shape[1], 1))
     model.fit(X, Y, epochs=epochs, batch_size=batch_size)
@@ -80,7 +83,7 @@ def load_lstm_model(model_name='lstm_model.keras'):
     return model
 
 
-def make_predictions(model, data, window_size=30):
+def make_predictions(model, data, window_size=WINDOW_SIZE):
     if window_size > len(data):
         raise ValueError(
             "Window size cannot be larger than the length of the data")
@@ -94,6 +97,6 @@ if __name__ == "__main__":
     #  split data
     train_data, test_data = split_data(data)
 
-    window_size = 60
+    window_size = WINDOW_SIZE
     model = train_model(data=train_data, window_size=window_size)
     save_model(model)
