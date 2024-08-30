@@ -2,7 +2,7 @@ from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 from fluvio import Fluvio
 from src.data_ingestion import fetch_google_trends_data, save_raw_data
-
+import os
 
 '''
 This is a custom connector that fetches 
@@ -12,13 +12,15 @@ into our Fluvio data pipeline
 
 
 TOPIC_NAME = "google-trends-data"
-BUFFER_MAX_SIZE = 16384
+BUFFER_MAX_SIZE = 16304
 
 
 app = Flask(__name__)
 
 # fluvio initialization
 fluvio = Fluvio.connect()
+# use CLI to create the topic (fluvio python sdk does not support topics creation yet)
+# os.popen('fluvio topic create google-trends-data')
 producer = fluvio.topic_producer(TOPIC_NAME)
 
 
@@ -48,13 +50,15 @@ def fetch_and_push_google_trends_data():
         for chunk in string_chunks:
             # push data to the topic
             producer.send_string(chunk)
+        # flush the last entry
+        producer.flush()
         print(f"Data pushed to {TOPIC_NAME} topic")
 
 
 # now we schedule the fetch_and_push_google_trends_data function to run every 24 hours
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=fetch_and_push_google_trends_data,
-                  trigger="interval", seconds=5)
+                  trigger="interval", hours=24)
 scheduler.start()
 
 
@@ -72,4 +76,5 @@ if __name__ == "__main__":
 # shut the scheduler down when on app exit
 @app.teardown_appcontext
 def shutdown_scheduler(exception=None):
-    scheduler.shutdown()
+    if scheduler.running:
+        scheduler.shutdown()
