@@ -5,7 +5,7 @@ import datetime
 import os
 
 
-def fetch_google_trends_data(keywords, timeframe='today 5-y', geo='', category=0):
+def fetch_google_trends_data(keywords, timeframe='now 7-d', geo='', category=0) -> pd.DataFrame:
     pytrends = TrendReq(hl='en-US')
     pytrends.build_payload(keywords, cat=category,
                            timeframe=timeframe, geo=geo, gprop='')
