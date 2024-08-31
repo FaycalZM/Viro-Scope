@@ -10,7 +10,7 @@ kw_list = ['flu', 'fever', 'cough', 'pandemic', 'symptoms']
 
 # cat=0 => All categories
 ptrends.build_payload(
-    kw_list, cat=0, timeframe='today 3-y', geo='', gprop='')
+    kw_list, cat=0, timeframe='now 7-d', geo='', gprop='')
 
 # df = ptrends.interest_by_region().sort_values('mpox', ascending=False).head(20)
 

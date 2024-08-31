@@ -32,7 +32,7 @@ def fetch_and_push_google_trends_data():
 
     if not data.empty:
         # convert the trends data to json string
-        data_json = data.reset_index().to_json(orient='records', date_format='iso')
+        data_json = data.reset_index().to_json(orient='records', date_format="iso")
 
         # the buffer max_size is 16384 bytes, so it's not possible to send the data directly -> divide and conquer
         # convert string data to bytes
@@ -52,6 +52,7 @@ def fetch_and_push_google_trends_data():
             producer.send_string(chunk)
         # flush the last entry
         producer.flush()
+        producer.send_string("done")
         print(f"Data pushed to {TOPIC_NAME} topic")
 
 
