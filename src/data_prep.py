@@ -4,13 +4,18 @@ import os
 from io import StringIO
 from fluvio import Fluvio, Offset
 from data_ingestion import load_raw_data
+from utils.utils import data_chunking
+
+
+CONSUMER_TOPIC = "google-trends-data"
+PRODUCER_TOPIC = "preprocessed-trends-data"
 
 
 def preprocess_data(data: pd.DataFrame):
     # Fill missing values
     data = data.fillna(method='ffill').fillna(method='bfill')
 
-    # Scale data if necessary (Min-Max scaling)
+    # Scale data (Min-Max scaling)
     scaled_data = (data - data.min()) / (data.max() - data.min())
     return scaled_data
 
@@ -29,21 +34,32 @@ def load_processed_data(file_name='processed_trends_data.csv'):
 
 
 if __name__ == "__main__":
-    # data = load_raw_data()
-    # processed_data = preprocess_data(data)
-    # save_preprocessed_data(processed_data)
     fluvio = Fluvio.connect()
-    consumer = fluvio.partition_consumer("google-trends-data", 0)
-    producer = fluvio.topic_producer("preprocessed-trends-data")
+    consumer = fluvio.partition_consumer(CONSUMER_TOPIC, 0)
+    producer = fluvio.topic_producer(PRODUCER_TOPIC)
 
     raw_data_json = ""
     stream = consumer.stream(Offset.from_beginning(0))
     for record in stream:
         if record.value_string() == "done":
-            break
+            # convert json back to DataFrame
+            data = pd.read_json(raw_data_json)
+            # preprocess raw data
+            processed_data = preprocess_data(data)
+            save_preprocessed_data(processed_data)
+            # send it to the corresponding topic
+            processed_data_json = processed_data.reset_index().to_json(
+                orient='records', date_format="iso")
+            string_chunks = data_chunking(processed_data_json)
+            for chunk in string_chunks:
+                # push data to the topic
+                producer.send_string(chunk)
+                # flush the last entry
+            producer.flush()
+            producer.send_string("done")
+            print(f"Data pushed to {PRODUCER_TOPIC} topic")
+
+            # reset raw_data_json
+            raw_data_json = ""
         else:
             raw_data_json += record.value_string()
-
-    data = pd.read_json(raw_data_json)
-
-    print(data)

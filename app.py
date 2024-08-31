@@ -2,7 +2,9 @@ from flask import Flask
 from apscheduler.schedulers.background import BackgroundScheduler
 from fluvio import Fluvio
 from src.data_ingestion import fetch_google_trends_data, save_raw_data
+from src.utils.utils import data_chunking
 import os
+
 
 '''
 This is a custom connector that fetches 
@@ -12,7 +14,6 @@ into our Fluvio data pipeline
 
 
 TOPIC_NAME = "google-trends-data"
-BUFFER_MAX_SIZE = 16304
 
 
 app = Flask(__name__)
@@ -34,18 +35,7 @@ def fetch_and_push_google_trends_data():
         # convert the trends data to json string
         data_json = data.reset_index().to_json(orient='records', date_format="iso")
 
-        # the buffer max_size is 16384 bytes, so it's not possible to send the data directly -> divide and conquer
-        # convert string data to bytes
-        byte_data = data_json.encode('utf-8')
-
-        # split the bytes data into chunks of chunk_size bytes
-        chunk_size = BUFFER_MAX_SIZE
-        byte_chunks = [byte_data[i:i + chunk_size]
-                       for i in range(0, len(byte_data), chunk_size)]
-
-        # convert each chunk back to string
-        string_chunks = [chunk.decode('utf-8', errors='ignore')
-                         for chunk in byte_chunks]
+        string_chunks = data_chunking(data_json)
 
         for chunk in string_chunks:
             # push data to the topic
