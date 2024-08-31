@@ -40,6 +40,7 @@ if __name__ == "__main__":
 
     raw_data_json = ""
     stream = consumer.stream(Offset.from_beginning(0))
+    # continuous streaming
     for record in stream:
         if record.value_string() == "done":
             # convert json back to DataFrame
@@ -57,7 +58,7 @@ if __name__ == "__main__":
                 # flush the last entry
             producer.flush()
             producer.send_string("done")
-            print(f"Data pushed to {PRODUCER_TOPIC} topic")
+            print(f"Preprocessed data pushed to {PRODUCER_TOPIC} topic")
 
             # reset raw_data_json
             raw_data_json = ""

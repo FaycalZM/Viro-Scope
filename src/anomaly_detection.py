@@ -1,6 +1,6 @@
 from data_prep import load_processed_data
 from model_training import make_predictions, load_lstm_model, split_data, WINDOW_SIZE
-
+from model_evaluation import plot_predictions
 import numpy as np
 import pandas as pd
 import matplotlib

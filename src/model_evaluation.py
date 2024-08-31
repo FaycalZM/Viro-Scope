@@ -1,4 +1,5 @@
-from model_training import load_lstm_model, load_processed_data, split_data
+from utils.utils import split_data, load_lstm_model
+from data_prep import load_processed_data
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 import pandas as pd
 import numpy as np
