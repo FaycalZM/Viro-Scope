@@ -104,20 +104,24 @@ if __name__ == "__main__":
             # convert json back to DataFrame
             data = pd.read_json(
                 StringIO(processed_data_json), orient='records')
+            data.set_index('date', inplace=True)
             if 'index' in data.columns:
                 data = data.drop(columns='index')
             train_data, test_data = split_data(data)
             # train the model
             window_size = WINDOW_SIZE
-            model = train_model(data=train_data, window_size=window_size)
-            save_model(model)
-            # model = load_lstm_model('lstm_model.keras')
+
+            # model = train_model(data=train_data, window_size=window_size)
+            # save_model(model)
+            model = load_lstm_model('lstm_model.keras')
             # evaluate model performance
             predictions, actual, mse, mae = evaluate_model_performance(
                 model, test_data, window_size)
             # convert predictions, actual data to json string and send it to the corresponding topic
             predictions_json = json.dumps(np.array(predictions).tolist())
-            actual_json = json.dumps(actual.tolist())
+            # print(test_data)
+            actual_json = test_data.reset_index().to_json(
+                orient='records', date_format="iso")
             output = json.loads(
                 '{"predictions" : [],"actual":[],"mse":0,"mae":0}')
             output['predictions'] = predictions_json

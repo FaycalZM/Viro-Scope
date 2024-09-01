@@ -1,11 +1,19 @@
+from io import StringIO
+import json
+from model_training import make_predictions, split_data, WINDOW_SIZE
+# from model_evaluation import plot_predictions
 from data_prep import load_processed_data
-from model_training import make_predictions, load_lstm_model, split_data, WINDOW_SIZE
-from model_evaluation import plot_predictions
+from utils.utils import load_lstm_model
+from fluvio import Fluvio, Offset
 import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Qt5Agg')
+
+
+CONSUMER_TOPIC = "predictions-data"
+PRODUCER_TOPIC = "anomalies-data"
 
 
 def detect_anomalies(actual, predictions, threshold=2):
@@ -70,13 +78,51 @@ def plot_anomalies(dates, actual, predictions, anomalies):
 
 
 if __name__ == "__main__":
-    data = load_processed_data()
-    train_data, test_data = split_data(data)
-    window_size = WINDOW_SIZE
-    model = load_lstm_model(model_name='lstm_model.keras')
-    predictions = make_predictions(model, test_data, window_size)
-    dates = test_data.index[window_size:]
-    actual = test_data[window_size:]
-    anomalies, residuals, threshold = detect_anomalies(
-        actual, predictions, threshold=2.0)
-    plot_anomalies(dates, actual, predictions, anomalies)
+
+    # data = load_processed_data()
+    # train_data, test_data = split_data(data)
+    # window_size = WINDOW_SIZE
+    # model = load_lstm_model(model_name='lstm_model.keras')
+    # predictions = make_predictions(model, test_data, window_size)
+    # print(predictions)
+    # dates = test_data.index[window_size:]
+    # actual = test_data[window_size:]
+    # anomalies, residuals, threshold = detect_anomalies(
+    #     actual, predictions, threshold=2.0)
+    # plot_anomalies(dates, actual, predictions, anomalies)
+
+    fluvio = Fluvio.connect()
+    consumer = fluvio.partition_consumer(CONSUMER_TOPIC, 0)
+    producer = fluvio.topic_producer(PRODUCER_TOPIC)
+
+    evaluation_data_json = ""
+    stream = consumer.stream(Offset.from_beginning(0))
+    # continuous streaming
+    for record in stream:
+        if record.value_string() == "done":
+            # load the model
+            model = load_lstm_model(model_name='lstm_model.keras')
+            window_size = WINDOW_SIZE
+            # convert string to json object
+            evaluation_data_obj = json.loads(evaluation_data_json)
+            # get predictions and actual data
+            predictions = json.loads(evaluation_data_obj['predictions'])
+            predictions = np.array(predictions)
+
+            actual = evaluation_data_obj['actual']
+            actual_df = pd.read_json(StringIO(actual), orient='records')
+            actual_df.set_index('date', inplace=True)
+            if 'index' in actual_df.columns:
+                actual_df = actual_df.drop(columns='index')
+            actual = actual_df[window_size:]
+
+            # detect anomalies
+            anomalies, residuals, threshold = detect_anomalies(
+                actual, predictions, threshold=2.0)
+
+            # # plot anomalies
+            dates = actual_df.index[window_size:]
+            plot_anomalies(dates, actual, predictions, anomalies)
+
+        else:
+            evaluation_data_json += record.value_string()

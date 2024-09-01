@@ -17,6 +17,7 @@ def preprocess_data(data: pd.DataFrame):
 
     # Scale data (Min-Max scaling)
     scaled_data = (data - data.min()) / (data.max() - data.min())
+
     return scaled_data
 
 
@@ -44,13 +45,15 @@ if __name__ == "__main__":
     for record in stream:
         if record.value_string() == "done":
             # convert json back to DataFrame
-            data = pd.read_json(raw_data_json)
+            data = pd.read_json(StringIO(raw_data_json), orient='records')
             # preprocess raw data
+            data.set_index('date', inplace=True)
             processed_data = preprocess_data(data)
             save_preprocessed_data(processed_data)
             # send it to the corresponding topic
             processed_data_json = processed_data.reset_index().to_json(
                 orient='records', date_format="iso")
+
             string_chunks = data_chunking(processed_data_json)
             for chunk in string_chunks:
                 # push data to the topic
