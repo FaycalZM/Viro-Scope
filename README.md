@@ -1,7 +1,9 @@
 # ViroScope - Global Disease Outbreak Monitoring System 🧑‍⚕️📈
 ## Overview
 ViroScope is a cutting-edge, real-time data pipeline designed to track and analyze global health data, providing early warnings of potential disease outbreaks. By leveraging public health-related data, AI-powered data processing, and [**Fluvio**](https://www.fluvio.io/)'s real-time data streaming capabilities, this system offers a comprehensive solution for monitoring, detecting, and responding to emerging health threats on a global scale.
-[![Quira Vote](https://img.shields.io/badge/Quira-View%20Repo-blue)](quira-vote-link-here)
+
+[![Quira Vote](https://img.shields.io/badge/Quira-View%20Repo-blue)](https://quira.sh/repo/FaycalZM-Viro-Scope-846580250?utm_source=copy&utm_share_context=quests_creators)
+
 ## Table of Contents 📑
 - [Features](#features)
 - [Technology Stack](#technology_stack)
@@ -68,5 +70,7 @@ ViroScope is a cutting-edge, real-time data pipeline designed to track and analy
     - Open a pull request from your forked repository to the main repository.
 ## Support 👍
 If you like this project, please support it by upvoting on Quira and starring the GitHub repository!
-[![Quira Repo](https://img.shields.io/badge/Quira-View%20Repo-blue)](quira-vote-link-here)
+
+[![Quira Repo](https://img.shields.io/badge/Quira-View%20Repo-blue)](https://quira.sh/repo/FaycalZM-Viro-Scope-846580250?utm_source=copy&utm_share_context=quests_creators)
+
 Thank you for your support!
